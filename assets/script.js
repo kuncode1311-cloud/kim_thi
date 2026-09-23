@@ -406,6 +406,23 @@ const wishList = [
   },
 ];
 
+// HỆ THỐNG PHÂN PHỐI 10 ẢNH & THÔNG ĐIỆP (ĐẢM BẢO XUẤT HIỆN ĐỦ 10 ẢNH, KHÔNG BỊ TRÙNG LẶP LIÊN TỤC)
+let wishDeck = [];
+
+function getNextWish() {
+  if (wishDeck.length === 0) {
+    // Trộn ngẫu nhiên (shuffle) đủ 10 bức ảnh để bắt đầu 1 vòng mới
+    wishDeck = [...wishList].sort(() => Math.random() - 0.5);
+  }
+  return wishDeck.pop();
+}
+
+// PRELOAD TOÀN BỘ 10 ẢNH ĐỂ KHÔNG BỊ GIẬT/NHẢY HÌNH KHI BẤM
+wishList.forEach((item) => {
+  const img = new Image();
+  img.src = item.img;
+});
+
 function createLanternTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = 128;
@@ -655,12 +672,25 @@ function onPointerUp(event) {
     targetCamPos = new THREE.Vector3().addVectors(lPos, offset);
     targetCamTarget = lPos.clone();
 
-    wishText.textContent = `"${selectedLantern.userData.wish}"`;
-    wishImage.src = selectedLantern.userData.imgUrl;
+    const wishData = getNextWish();
+
+    wishText.textContent = `"${wishData.text}"`;
+    wishImage.style.opacity = "0";
+
+    const newImg = new Image();
+    newImg.onload = () => {
+      wishImage.src = wishData.img;
+      wishImage.style.opacity = "1";
+    };
+    newImg.src = wishData.img;
+    if (newImg.complete) {
+      wishImage.src = wishData.img;
+      wishImage.style.opacity = "1";
+    }
 
     setTimeout(() => {
       wishModal.classList.add("active");
-    }, 300);
+    }, 200);
   }
 }
 
@@ -679,6 +709,9 @@ function closeWishCard(e) {
     e.preventDefault();
   }
   wishModal.classList.remove("active");
+  setTimeout(() => {
+    wishImage.style.opacity = "0";
+  }, 250);
   resetCamera();
 }
 
