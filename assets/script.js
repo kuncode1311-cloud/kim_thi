@@ -34,11 +34,20 @@ container.appendChild(renderer.domElement);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.05;
+controls.dampingFactor = 0.08;
 controls.maxPolarAngle = Math.PI / 2 + 0.05;
-controls.minDistance = 8;
-controls.maxDistance = 85;
+controls.minDistance = 6;
+controls.maxDistance = 75;
 controls.target.copy(DEFAULT_CAM_TARGET);
+
+// TỐI ƯU CẢM ỨNG THU PHÓNG (PINCH-TO-ZOOM) 2 NGÓN TAY TRÊN ĐIỆN THOẠI
+controls.enableZoom = true;
+controls.zoomSpeed = isMobile ? 2.6 : 1.2;
+controls.enablePan = false; // Tắt Pan để 2 ngón tay tập trung 100% vào việc thu phóng cực mượt
+controls.touches = {
+  ONE: THREE.TOUCH.ROTATE,
+  TWO: THREE.TOUCH.DOLLY_ROTATE,
+};
 
 // LIGHTS
 const ambientLight = new THREE.AmbientLight(0x2a103d, 1.4);
@@ -627,6 +636,8 @@ const closeWishBtn = document.getElementById("closeWishBtn");
 let pointerDownPos = { x: 0, y: 0 };
 
 function onPointerDown(event) {
+  targetCamPos = null;
+  targetCamTarget = null;
   pointerDownPos.x =
     event.clientX || (event.touches && event.touches[0].clientX) || 0;
   pointerDownPos.y =
