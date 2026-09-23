@@ -209,6 +209,8 @@
 					}
 
 					spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) ); // move target to panned location
+					if ( spherical.radius <= scope.minDistance && scale < 1 ) scale = 1;
+					if ( spherical.radius >= scope.maxDistance && scale > 1 ) scale = 1;
 
 					if ( scope.enableDamping === true ) {
 
@@ -525,16 +527,16 @@
 					delta *= 80;
 				}
 
-				const normalized = Math.min( Math.max( delta, -120 ), 120 );
-				const zoomStep = Math.pow( 0.985, ( normalized / 24 ) * scope.zoomSpeed );
+				const absDelta = Math.min( Math.abs( delta ), 150 );
+				const zoomRatio = Math.pow( 0.95, ( absDelta / 100 ) * scope.zoomSpeed );
 
 				if ( delta < 0 ) {
 
-					dollyIn( zoomStep );
+					dollyIn( zoomRatio );
 
 				} else if ( delta > 0 ) {
 
-					dollyOut( zoomStep );
+					dollyOut( zoomRatio );
 
 				}
 

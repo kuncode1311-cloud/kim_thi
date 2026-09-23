@@ -713,6 +713,10 @@ function onPointerUp(event) {
 
 window.addEventListener("pointerdown", onPointerDown, { passive: true });
 window.addEventListener("pointerup", onPointerUp, { passive: true });
+window.addEventListener("wheel", () => {
+  targetCamPos = null;
+  targetCamTarget = null;
+}, { passive: true });
 
 function resetCamera(smooth = true) {
   selectedLantern = null;
