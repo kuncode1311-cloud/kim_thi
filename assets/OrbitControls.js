@@ -197,7 +197,16 @@
 
 					spherical.phi = Math.max( scope.minPolarAngle, Math.min( scope.maxPolarAngle, spherical.phi ) );
 					spherical.makeSafe();
-					spherical.radius *= scale; // restrict radius to be between desired limits
+
+					if ( scope.enableDamping === true ) {
+						const dollyStep = 1 + ( scale - 1 ) * Math.min( scope.dampingFactor * 2.5, 0.4 );
+						spherical.radius *= dollyStep;
+						scale = 1 + ( scale - 1 ) * ( 1 - Math.min( scope.dampingFactor * 2.5, 0.4 ) );
+						if ( Math.abs( scale - 1 ) < 0.0005 ) scale = 1;
+					} else {
+						spherical.radius *= scale;
+						scale = 1;
+					}
 
 					spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) ); // move target to panned location
 
@@ -228,9 +237,7 @@
 						sphericalDelta.set( 0, 0, 0 );
 						panOffset.set( 0, 0, 0 );
 
-					}
-
-					scale = 1; // update condition is:
+					} // update condition is:
 					// min(camera displacement, camera rotation in radians)^2 > EPS
 					// using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
@@ -511,13 +518,23 @@
 
 			function handleMouseWheel( event ) {
 
-				if ( event.deltaY < 0 ) {
+				let delta = event.deltaY;
+				if ( event.deltaMode === 1 ) {
+					delta *= 24;
+				} else if ( event.deltaMode === 2 ) {
+					delta *= 80;
+				}
 
-					dollyIn( getZoomScale() );
+				const normalized = Math.min( Math.max( delta, -120 ), 120 );
+				const zoomStep = Math.pow( 0.985, ( normalized / 24 ) * scope.zoomSpeed );
 
-				} else if ( event.deltaY > 0 ) {
+				if ( delta < 0 ) {
 
-					dollyOut( getZoomScale() );
+					dollyIn( zoomStep );
+
+				} else if ( delta > 0 ) {
+
+					dollyOut( zoomStep );
 
 				}
 
