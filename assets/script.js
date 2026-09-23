@@ -36,13 +36,13 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.maxPolarAngle = Math.PI / 2 + 0.05;
-controls.minDistance = 6;
-controls.maxDistance = 75;
+controls.minDistance = 4;
+controls.maxDistance = 160; // Cho phép thu nhỏ thoải mái ngắm toàn cảnh lồng đèn
 controls.target.copy(DEFAULT_CAM_TARGET);
 
-// TỐI ƯU CẢM ỨNG THU PHÓNG (PINCH-TO-ZOOM) 2 NGÓN TAY TRÊN ĐIỆN THOẠI
+// TỐI ƯU CẢM ỨNG THU PHÓNG (PINCH-TO-ZOOM) 2 NGÓN TAY TRÊN ĐIỆN THOẠI & LAPTOP
 controls.enableZoom = true;
-controls.zoomSpeed = isMobile ? 2.6 : 1.2;
+controls.zoomSpeed = isMobile ? 2.5 : 1.5;
 controls.enablePan = false; // Tắt Pan để 2 ngón tay tập trung 100% vào việc thu phóng cực mượt
 controls.touches = {
   ONE: THREE.TOUCH.ROTATE,
@@ -636,8 +636,14 @@ const closeWishBtn = document.getElementById("closeWishBtn");
 let pointerDownPos = { x: 0, y: 0 };
 
 function onPointerDown(event) {
-  targetCamPos = null;
-  targetCamTarget = null;
+  if (event.target.closest(".top-bar") || event.target.closest(".wish-modal")) {
+    return;
+  }
+  // Nếu người dùng chủ động chạm/xoay cảnh 3D bằng tay thì dừng animation tự động
+  if (pointerDownPos) {
+    targetCamPos = null;
+    targetCamTarget = null;
+  }
   pointerDownPos.x =
     event.clientX || (event.touches && event.touches[0].clientX) || 0;
   pointerDownPos.y =
@@ -679,7 +685,7 @@ function onPointerUp(event) {
     const offset = new THREE.Vector3()
       .subVectors(camera.position, lPos)
       .normalize()
-      .multiplyScalar(5.5);
+      .multiplyScalar(6.5);
     targetCamPos = new THREE.Vector3().addVectors(lPos, offset);
     targetCamTarget = lPos.clone();
 
@@ -708,26 +714,46 @@ function onPointerUp(event) {
 window.addEventListener("pointerdown", onPointerDown, { passive: true });
 window.addEventListener("pointerup", onPointerUp, { passive: true });
 
-function resetCamera() {
-  targetCamPos = DEFAULT_CAM_POS.clone();
-  targetCamTarget = DEFAULT_CAM_TARGET.clone();
+function resetCamera(smooth = true) {
   selectedLantern = null;
+  if (smooth) {
+    targetCamPos = DEFAULT_CAM_POS.clone();
+    targetCamTarget = DEFAULT_CAM_TARGET.clone();
+  } else {
+    camera.position.copy(DEFAULT_CAM_POS);
+    controls.target.copy(DEFAULT_CAM_TARGET);
+    targetCamPos = null;
+    targetCamTarget = null;
+  }
 }
 
 function closeWishCard(e) {
   if (e) {
     e.stopPropagation();
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
   }
   wishModal.classList.remove("active");
   setTimeout(() => {
     wishImage.style.opacity = "0";
   }, 250);
-  resetCamera();
+  // Khi đóng thiệp, tự động lùi góc nhìn về toàn cảnh
+  resetCamera(true);
 }
 
 closeWishBtn.addEventListener("click", closeWishCard);
 closeWishBtn.addEventListener("touchend", closeWishCard);
+
+// NÚT TRỞ VỀ GÓC NHÌN TOÀN CẢNH (RESET-CAM-BTN)
+const resetCamBtn = document.getElementById("reset-cam-btn");
+if (resetCamBtn) {
+  const handleReset = (e) => {
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+    resetCamera(true);
+  };
+  resetCamBtn.addEventListener("click", handleReset);
+  resetCamBtn.addEventListener("touchend", handleReset);
+}
 
 wishModal.addEventListener("click", (e) => {
   if (e.target === wishModal) closeWishCard(e);
@@ -865,10 +891,15 @@ function animate() {
   updateRabbits(time);
 
   if (targetCamPos && targetCamTarget) {
-    camera.position.lerp(targetCamPos, 0.04);
-    controls.target.lerp(targetCamTarget, 0.04);
+    camera.position.lerp(targetCamPos, 0.08);
+    controls.target.lerp(targetCamTarget, 0.08);
 
-    if (camera.position.distanceTo(targetCamPos) < 0.1) {
+    if (
+      camera.position.distanceTo(targetCamPos) < 0.2 &&
+      controls.target.distanceTo(targetCamTarget) < 0.2
+    ) {
+      camera.position.copy(targetCamPos);
+      controls.target.copy(targetCamTarget);
       targetCamPos = null;
       targetCamTarget = null;
     }
