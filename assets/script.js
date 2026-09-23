@@ -8,14 +8,14 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x060312, 0.008);
 
 const camera = new THREE.PerspectiveCamera(
-  isMobile ? 60 : 45,
+  isMobile ? 50 : 45,
   window.innerWidth / window.innerHeight,
   0.1,
   1000,
 );
 
 const DEFAULT_CAM_POS = isMobile
-  ? new THREE.Vector3(0, 12, 45)
+  ? new THREE.Vector3(0, 10, 36)
   : new THREE.Vector3(0, 10, 40);
 const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 6.0, 0);
 
@@ -188,8 +188,8 @@ for (let i = 0; i < mainBranchCount; i++) {
   branchClusters.push({ center: endP, radius: 3.2 + Math.random() * 1.0 });
 }
 
-// HỆ THỐNG TÁN LÁ
-const particleCount = isMobile ? 22000 : 38000;
+// HỆ THỐNG TÁN LÁ (TINH CHỈNH THƯA, THANH THOÁT TRÊN MOBILE & DESKTOP)
+const particleCount = isMobile ? 8500 : 24000;
 const blossomGeo = new THREE.BufferGeometry();
 const blossomPos = new Float32Array(particleCount * 3);
 const blossomColors = new Float32Array(particleCount * 3);
@@ -200,22 +200,25 @@ const colorPaleRose = new THREE.Color(0xf7d1d5);
 const colorSoftWhite = new THREE.Color(0xfdf0f2);
 
 const clusters = [
-  { center: new THREE.Vector3(0, 9.5, 0), radius: 6.2 },
-  { center: new THREE.Vector3(0, 7.5, 0), radius: 7.0 },
-  { center: new THREE.Vector3(0, 5.5, 0), radius: 6.0 },
-  ...branchClusters,
+  { center: new THREE.Vector3(0, 8.6, 0), radius: 3.5 },
+  { center: new THREE.Vector3(0, 7.2, 0), radius: 4.0 },
+  ...branchClusters.map((bc) => ({
+    center: bc.center,
+    radius: 2.2 + Math.random() * 0.8,
+  })),
 ];
 
 for (let i = 0; i < particleCount; i++) {
   const c = clusters[Math.floor(Math.random() * clusters.length)];
 
   const u = Math.random();
-  const r = Math.pow(u, 0.65) * c.radius;
+  // Giúp các hạt phân bổ thưa thoáng đều, không bị vón cục ở lõi
+  const r = (0.2 + Math.pow(u, 0.75) * 0.8) * c.radius;
   const theta = Math.random() * Math.PI * 2;
   const phi = Math.acos(2 * Math.random() - 1);
 
   const x = c.center.x + r * Math.sin(phi) * Math.cos(theta);
-  const y = c.center.y + r * Math.sin(phi) * Math.sin(theta) * 0.8;
+  const y = c.center.y + r * Math.sin(phi) * Math.sin(theta) * 0.75;
   const z = c.center.z + r * Math.cos(phi);
 
   blossomPos[i * 3] = x;
@@ -253,9 +256,10 @@ function createParticleTexture() {
   canvas.height = 32;
   const ctx = canvas.getContext("2d");
   const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-  grad.addColorStop(0, "rgba(255,255,255,0.9)");
-  grad.addColorStop(0.4, "rgba(240,182,188,0.6)");
-  grad.addColorStop(1, "rgba(240,182,188,0)");
+  grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+  grad.addColorStop(0.3, "rgba(255, 215, 225, 0.7)");
+  grad.addColorStop(0.7, "rgba(240, 165, 180, 0.25)");
+  grad.addColorStop(1, "rgba(240, 165, 180, 0)");
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(16, 16, 16, 0, Math.PI * 2);
@@ -264,11 +268,11 @@ function createParticleTexture() {
 }
 
 const blossomMat = new THREE.PointsMaterial({
-  size: isMobile ? 0.5 : 0.42,
+  size: isMobile ? 0.28 : 0.36,
   vertexColors: true,
   map: createParticleTexture(),
   transparent: true,
-  opacity: 0.75,
+  opacity: isMobile ? 0.6 : 0.72,
   blending: THREE.NormalBlending,
   depthWrite: false,
 });
