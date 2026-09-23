@@ -8,14 +8,14 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x060312, 0.008);
 
 const camera = new THREE.PerspectiveCamera(
-  isMobile ? 48 : 45,
+  isMobile ? 50 : 45,
   window.innerWidth / window.innerHeight,
   0.1,
   1000,
 );
 
 const DEFAULT_CAM_POS = isMobile
-  ? new THREE.Vector3(0, 9.5, 34)
+  ? new THREE.Vector3(0, 9.2, 32)
   : new THREE.Vector3(0, 10, 40);
 const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 5.8, 0);
 
@@ -188,26 +188,26 @@ for (let i = 0; i < mainBranchCount; i++) {
   branchClusters.push({ center: endP, radius: 3.2 + Math.random() * 1.0 });
 }
 
-// HỆ THỐNG TÁN LÁ (HỒNG PASTEL TỰ NHIÊN, BỒNG BỀNH, MỀM MẠI)
-const particleCount = isMobile ? 18000 : 32000;
+// HỆ THỐNG TÁN LÁ (MÀU HỒNG HOA ANH ĐÀO TƯƠI SÁNG, NÉT ĐẸP, RÕ RÀNG)
+const particleCount = isMobile ? 22000 : 34000;
 const blossomGeo = new THREE.BufferGeometry();
 const blossomPos = new Float32Array(particleCount * 3);
 const blossomColors = new Float32Array(particleCount * 3);
 
-// BẢNG MÀU HOA ANH ĐÀO PASTEL DỊU DÀNG, THANH THOÁT
-const colorDeeperRose = new THREE.Color(0xdf829b); // Hồng đào trầm nhẹ ở lõi
-const colorSoftSakura = new THREE.Color(0xf4a6bb); // Hồng sakura dịu dàng
-const colorPalePink   = new THREE.Color(0xfbc5d5); // Hồng phấn nhẹ nhàng
-const colorBlushWhite = new THREE.Color(0xffeef3); // Trắng phớt hồng
-const colorPureWhite  = new THREE.Color(0xffffff); // Ánh sáng hoa
+// TONE HỒNG HOA ANH ĐÀO CHUẨN: TƯƠI TẮN, ẤM ÁP, KHÔNG BỊ MỜ TRẮNG
+const colorDeepCoral = new THREE.Color(0xeb3b72); // Hồng đào thắm tạo chiều sâu
+const colorSakura    = new THREE.Color(0xff598f); // Hồng anh đào tươi sáng
+const colorRose      = new THREE.Color(0xff75a0); // Hồng cánh hoa tự nhiên
+const colorSoftPink  = new THREE.Color(0xffa1be); // Hồng phấn ấm
+const colorPetalTip  = new THREE.Color(0xffd1dc); // Điểm xuyết ngọn cánh hoa
 
 const clusters = [
-  { center: new THREE.Vector3(0, 9.0, 0), radius: 5.2 },
-  { center: new THREE.Vector3(0, 7.6, 0), radius: 6.0 },
-  { center: new THREE.Vector3(0, 6.0, 0), radius: 5.0 },
+  { center: new THREE.Vector3(0, 9.2, 0), radius: 5.4 },
+  { center: new THREE.Vector3(0, 7.8, 0), radius: 6.2 },
+  { center: new THREE.Vector3(0, 6.0, 0), radius: 5.2 },
   ...branchClusters.map((bc) => ({
     center: bc.center,
-    radius: 3.0 + Math.random() * 0.8,
+    radius: 3.2 + Math.random() * 0.8,
   })),
 ];
 
@@ -215,13 +215,12 @@ for (let i = 0; i < particleCount; i++) {
   const c = clusters[Math.floor(Math.random() * clusters.length)];
 
   const u = Math.random();
-  // Phân bổ tơi xốp, bồng bềnh, không bị nén chặt
-  const r = (0.2 + Math.pow(u, 0.65) * 0.8) * c.radius;
+  const r = (0.15 + Math.pow(u, 0.6) * 0.85) * c.radius;
   const theta = Math.random() * Math.PI * 2;
   const phi = Math.acos(2 * Math.random() - 1);
 
   const x = c.center.x + r * Math.sin(phi) * Math.cos(theta);
-  const y = c.center.y + r * Math.sin(phi) * Math.sin(theta) * 0.76;
+  const y = c.center.y + r * Math.sin(phi) * Math.sin(theta) * 0.78;
   const z = c.center.z + r * Math.cos(phi);
 
   blossomPos[i * 3] = x;
@@ -233,21 +232,21 @@ for (let i = 0; i < particleCount; i++) {
   let col;
 
   if (heightFactor < 0.25) {
-    col = randC < 0.6 ? colorDeeperRose : colorSoftSakura;
+    col = randC < 0.6 ? colorDeepCoral : colorSakura;
   } else if (heightFactor < 0.65) {
     col =
       randC < 0.4
-        ? colorSoftSakura
+        ? colorSakura
         : randC < 0.8
-          ? colorPalePink
-          : colorDeeperRose;
+          ? colorRose
+          : colorDeepCoral;
   } else {
     col =
       randC < 0.45
-        ? colorPalePink
+        ? colorRose
         : randC < 0.8
-          ? colorBlushWhite
-          : colorPureWhite;
+          ? colorSoftPink
+          : colorPetalTip;
   }
 
   blossomColors[i * 3] = col.r;
@@ -265,9 +264,9 @@ function createParticleTexture() {
   const ctx = canvas.getContext("2d");
   const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
   grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-  grad.addColorStop(0.35, "rgba(255, 205, 220, 0.75)");
-  grad.addColorStop(0.75, "rgba(240, 160, 180, 0.2)");
-  grad.addColorStop(1, "rgba(240, 160, 180, 0)");
+  grad.addColorStop(0.35, "rgba(255, 120, 165, 0.95)");
+  grad.addColorStop(0.7, "rgba(255, 75, 130, 0.55)");
+  grad.addColorStop(1, "rgba(255, 75, 130, 0)");
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(32, 32, 32, 0, Math.PI * 2);
@@ -276,11 +275,11 @@ function createParticleTexture() {
 }
 
 const blossomMat = new THREE.PointsMaterial({
-  size: isMobile ? 0.36 : 0.40,
+  size: isMobile ? 0.44 : 0.42,
   vertexColors: true,
   map: createParticleTexture(),
   transparent: true,
-  opacity: 0.72,
+  opacity: 0.85,
   blending: THREE.NormalBlending,
   depthWrite: false,
 });
