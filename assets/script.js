@@ -771,44 +771,84 @@ window.addEventListener("keydown", (e) => {
 const bgm = document.getElementById("bgm");
 const audioBtn = document.getElementById("audio-btn");
 let isPlaying = false;
+let isAudioStarting = false;
+
+function updateAudioUI(playing) {
+  if (playing) {
+    audioBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    audioBtn.setAttribute("title", "Tắt Nhạc");
+  } else {
+    audioBtn.innerHTML = '<i class="fas fa-volume-mute" style="opacity:0.6;"></i>';
+    audioBtn.setAttribute("title", "Bật Nhạc");
+  }
+}
+
+function unlockAudioContext() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (AudioCtx) {
+    if (!window.__audioContext) {
+      window.__audioContext = new AudioCtx();
+    }
+    if (window.__audioContext.state === "suspended") {
+      window.__audioContext.resume().catch(() => {});
+    }
+  }
+}
 
 function playAudio() {
-  if (isPlaying) return;
-  bgm
-    .play()
-    .then(() => {
-      isPlaying = true;
-      audioBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-      removeAutoPlayListeners();
-    })
-    .catch(() => {});
+  if (isPlaying || isAudioStarting) return;
+  isAudioStarting = true;
+  unlockAudioContext();
+
+  bgm.muted = false;
+  const playPromise = bgm.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isPlaying = true;
+        isAudioStarting = false;
+        updateAudioUI(true);
+        removeAutoPlayListeners();
+      })
+      .catch(() => {
+        isAudioStarting = false;
+        updateAudioUI(false);
+      });
+  } else {
+    isPlaying = true;
+    isAudioStarting = false;
+    updateAudioUI(true);
+    removeAutoPlayListeners();
+  }
 }
 
 function pauseAudio() {
+  isAudioStarting = false;
   if (!isPlaying) return;
   bgm.pause();
   isPlaying = false;
-  audioBtn.innerHTML = '<i class="fas fa-music" style="opacity:0.5;"></i>';
+  updateAudioUI(false);
 }
 
-audioBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
+function toggleAudio(e) {
+  if (e) {
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+  }
   if (isPlaying) {
     pauseAudio();
   } else {
     playAudio();
   }
-});
+}
 
-const autoPlayEvents = [
-  "pointerdown",
-  "touchstart",
-  "touchmove",
-  "wheel",
-  "scroll",
-  "click",
-  "keydown",
-];
+audioBtn.addEventListener("click", toggleAudio);
+audioBtn.addEventListener("touchend", toggleAudio);
+
+// CHỈ DÙNG CÁC SỰ KIỆN TƯƠNG TÁC THỰC TẾ (USER GESTURES)
+// KHÔNG dùng touchmove/scroll/wheel vì spam play() gây AbortError liên tục
+const autoPlayEvents = ["pointerdown", "touchend", "click", "keydown"];
 
 function triggerAutoPlay(e) {
   if (e.target && (e.target === audioBtn || audioBtn.contains(e.target))) {
@@ -819,17 +859,15 @@ function triggerAutoPlay(e) {
 
 function removeAutoPlayListeners() {
   autoPlayEvents.forEach((evt) => {
-    window.removeEventListener(evt, triggerAutoPlay, true);
-    document.removeEventListener(evt, triggerAutoPlay, true);
+    window.removeEventListener(evt, triggerAutoPlay, { capture: true });
   });
 }
 
 autoPlayEvents.forEach((evt) => {
   window.addEventListener(evt, triggerAutoPlay, { capture: true, passive: true });
-  document.addEventListener(evt, triggerAutoPlay, { capture: true, passive: true });
 });
 
-// Thử tự động phát ngay khi vừa load (nếu trình duyệt không chặn)
+// Thử tự động phát ngay khi vừa load (nếu trình duyệt cho phép)
 playAudio();
 window.addEventListener("load", playAudio);
 document.addEventListener("DOMContentLoaded", playAudio);
