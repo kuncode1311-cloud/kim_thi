@@ -385,12 +385,24 @@ const wishList = [
     img: "./assets/kt5.png",
   },
   {
-    text: "Chúc Kim Thi có một đêm Trung Thu thật chill, ngắm trăng phá cỗ và luôn giữ nụ cười thật tươi nha! 🏮😄",
-    img: "./assets/kt1.png",
+    text: "Chúc cô gái Kim Thi mùa trăng này luôn ngập tràn may mắn, niềm vui và vạn sự như ý! 🎂🎈",
+    img: "./assets/kt6.png",
   },
   {
-    text: "Chúc Kim Thi luôn xinh xắn, an nhiên, hạnh phúc và có một mùa trăng thật ấm áp bên gia đình và bạn bè! 🎊💖",
-    img: "./assets/kt3.png",
+    text: "Chúc Kim Thi lúc nào cũng lạc quan, tràn đầy nhiệt huyết, việc học việc làm luôn xuất sắc nhé! 💚💪",
+    img: "./assets/kt7.png",
+  },
+  {
+    text: "Chúc Kim Thi có một đêm Trung Thu thật chill, ngắm trăng phá cỗ và luôn tỏa sáng rực rỡ nha! 🏮✨",
+    img: "./assets/kt8.png",
+  },
+  {
+    text: "Chúc Kim Thi mỗi ngày trôi qua đều là một ngày bình yên, vui vẻ và nhận được thật nhiều yêu thương! 🥑🍀",
+    img: "./assets/kt9.png",
+  },
+  {
+    text: "Chúc Kim Thi luôn xinh đẹp tựa như nàng tiên ánh trăng, tâm an yên và nụ cười luôn nở trên môi! 🌙💖",
+    img: "./assets/kt10.png",
   },
 ];
 
